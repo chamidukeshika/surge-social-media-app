@@ -9,21 +9,21 @@ const userSchema = new Schema({
         type: String,
         required: [true, 'Username is required'],
         unique: true,
-        minlength: [3, 'Username must be at least 3 characters'], // Validates minimum length
-        maxlength: [30, 'Username must be less than 30 characters'], // Validates maximum length
-        trim: true, // Removes any leading/trailing spaces
+        minlength: [3, 'Username must be at least 3 characters'],
+        maxlength: [30, 'Username must be less than 30 characters'],
+        trim: true,
     },
     email: {
         type: String,
         required: [true, 'Email is required'],
         unique: true,
-        lowercase: true, // Ensures email is stored in lowercase
-        match: [/^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$/, 'Please enter a valid email address'], // Validates email format
+        lowercase: true,
+        match: [/^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$/, 'Please enter a valid email address'],
     },
     password: {
         type: String,
         required: [true, 'Password is required'],
-        minlength: [6, 'Password must be at least 6 characters'], // Password length validation
+        minlength: [6, 'Password must be at least 6 characters'],
     },
 });
 
@@ -32,11 +32,11 @@ userSchema.pre('save', async function (next) {
     if (!this.isModified('password')) return next(); // Only hash password if modified
 
     try {
-        const hashedPassword = await bcrypt.hash(this.password, 10); // Hash the password
+        const hashedPassword = await bcrypt.hash(this.password, 10);
         this.password = hashedPassword;
         next();
     } catch (err) {
-        next(err); r
+        next(err); // Corrected typo here by removing the extra character "r"
     }
 });
 

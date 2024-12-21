@@ -1,43 +1,56 @@
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import axiosInstance from "../api/axios";
-import { useState } from "react";
+import ReCAPTCHA from "react-google-recaptcha";
+import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";  // Import useNavigate
+import './RegisterPage.css';
 
 const RegisterPage = () => {
-    const [loading, setLoading] = useState(false); // Loading state
-    const {
-        register,
-        handleSubmit,
-        formState: { errors },
-    } = useForm();
+    const [loading, setLoading] = useState(false);
+    const { register, handleSubmit, formState: { errors } } = useForm();
+    const [recaptchaValue, setRecaptchaValue] = useState(null);
+    const navigate = useNavigate();  // Initialize navigate
 
     const onSubmit = async (data) => {
-        setLoading(true); // Start loading
+        if (!recaptchaValue) {
+            toast.error("Please complete the reCAPTCHA verification.");
+            return;
+        }
+
+        setLoading(true);
         try {
-            const response = await axiosInstance.post("/auth/register", data);
-            alert("Registration successful!");
+            const response = await axiosInstance.post("/auth/register", { ...data, recaptchaToken: recaptchaValue });
+            toast.success("Registration successful!");
+
+            // Redirect to login page after success
+            setTimeout(() => {
+                navigate("/");  // Redirect to the login page ('/')
+            }, 2000);  // Delay to allow the success toast to show
+
         } catch (error) {
             if (error.response) {
-                alert(error.response.data.message || "Registration failed!");
+                toast.error(error.response.data.message || "Registration failed! Please try again.");
             } else {
-                alert("Something went wrong. Please try again later.");
+                toast.error("Something went wrong. Please try again later.");
             }
         } finally {
-            setLoading(false); // Stop loading
+            setLoading(false);
         }
     };
 
+    const handleRecaptcha = (value) => {
+        setRecaptchaValue(value);
+    };
+
     return (
-        <div className="flex justify-center items-center h-screen bg-gray-100">
-            <form
-                onSubmit={handleSubmit(onSubmit)}
-                className="bg-white p-8 rounded shadow-md w-96"
-                noValidate
-            >
-                <h2 className="text-2xl font-bold mb-4 text-center">Register</h2>
+        <div className="register-page">
+            <form onSubmit={handleSubmit(onSubmit)} className="form-card" noValidate>
+                <h2 className="form-header">Register</h2>
 
                 {/* Username Field */}
-                <div className="mb-4">
-                    <label htmlFor="username" className="block text-sm font-medium">Username</label>
+                <div className="form-group">
+                    <label htmlFor="username" className="form-label">Username</label>
                     <input
                         id="username"
                         {...register("username", {
@@ -47,17 +60,17 @@ const RegisterPage = () => {
                                 message: "Username must be at least 3 characters long",
                             },
                         })}
-                        className="w-full px-3 py-2 border rounded"
+                        className="form-input"
                         disabled={loading}
                     />
                     {errors.username && (
-                        <p className="text-red-500 text-xs mt-1">{errors.username.message}</p>
+                        <p className="error-text">{errors.username.message}</p>
                     )}
                 </div>
 
                 {/* Email Field */}
-                <div className="mb-4">
-                    <label htmlFor="email" className="block text-sm font-medium">Email</label>
+                <div className="form-group">
+                    <label htmlFor="email" className="form-label">Email</label>
                     <input
                         id="email"
                         type="email"
@@ -68,17 +81,17 @@ const RegisterPage = () => {
                                 message: "Please enter a valid email address",
                             },
                         })}
-                        className="w-full px-3 py-2 border rounded"
+                        className="form-input"
                         disabled={loading}
                     />
                     {errors.email && (
-                        <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>
+                        <p className="error-text">{errors.email.message}</p>
                     )}
                 </div>
 
                 {/* Password Field */}
-                <div className="mb-4">
-                    <label htmlFor="password" className="block text-sm font-medium">Password</label>
+                <div className="form-group">
+                    <label htmlFor="password" className="form-label">Password</label>
                     <input
                         id="password"
                         type="password"
@@ -89,28 +102,37 @@ const RegisterPage = () => {
                                 message: "Password must be at least 6 characters long",
                             },
                         })}
-                        className="w-full px-3 py-2 border rounded"
+                        className="form-input"
                         disabled={loading}
                     />
                     {errors.password && (
-                        <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>
+                        <p className="error-text">{errors.password.message}</p>
+                    )}
+                </div>
+
+                {/* reCAPTCHA Widget */}
+                <div className="form-group">
+                    <ReCAPTCHA
+                        sitekey="6Lfqo6EqAAAAAN6duo0Ax1-cGoqqSP8cmAOF5WqQ" // Replace with your site key
+                        onChange={handleRecaptcha}
+                    />
+                    {errors.recaptcha && (
+                        <p className="error-text">{errors.recaptcha.message}</p>
                     )}
                 </div>
 
                 {/* Submit Button */}
                 <button
                     type="submit"
-                    className={`w-full bg-blue-500 text-white px-4 py-2 rounded ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
+                    className={`submit-btn ${loading ? "loading" : ""}`}
                     disabled={loading}
                 >
                     {loading ? "Registering..." : "Register"}
                 </button>
 
                 {/* Footer Links */}
-                <div className="mt-4 text-center">
-                    <a href="/login" className="text-sm text-blue-500 hover:underline">
-                        Already have an account? Login
-                    </a>
+                <div className="footer">
+                    Already have an account? <a href="/" className="footer-link"> Login</a>
                 </div>
             </form>
         </div>

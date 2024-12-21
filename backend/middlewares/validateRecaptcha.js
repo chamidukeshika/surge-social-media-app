@@ -13,7 +13,7 @@ const validateRecaptcha = async (req, res, next) => {
             null,
             {
                 params: {
-                    secret: process.env.RECAPTCHA_SECRET_KEY, // Use your Secret Key
+                    secret: process.env.RECAPTCHA_SECRET_KEY,
                     response: recaptchaToken,
                 },
             }
